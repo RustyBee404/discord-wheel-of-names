@@ -1,6 +1,39 @@
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { generateWheelGIF, generateWheelImage, COLOR_PALETTES } from '../wheel-generator.js';
-import { PLAN_LIMITS, createLimitExceededEmbed } from '../plan-limits.js';
+
+// Default limits when API is not configured (standalone mode)
+const STANDALONE_LIMITS = {
+  maxEntries: 50, // Reasonable default for standalone
+  planName: 'Standalone'
+};
+
+/**
+ * Create an embed for limit exceeded error
+ */
+function createLimitExceededEmbed(limitType, current, limit, planName) {
+  const labels = {
+    maxEntries: 'entries',
+    maxWheels: 'saved wheels'
+  };
+  const label = labels[limitType] || 'items';
+
+  return new EmbedBuilder()
+    .setColor(0xFF6B6B)
+    .setTitle(`Limit Reached`)
+    .setDescription(
+      `Your **${planName}** plan allows up to **${limit}** ${label}.\n` +
+      `You have **${current}**.\n\n` +
+      `Upgrade your plan for higher limits!`
+    )
+    .addFields({
+      name: 'Upgrade Now',
+      value: '[View Pricing](https://uplup.com/pricing)'
+    })
+    .setFooter({
+      text: 'Uplup',
+      iconURL: 'https://uplup.com/favicon.ico'
+    });
+}
 
 export const data = new SlashCommandBuilder()
   .setName('spin')
@@ -181,7 +214,7 @@ export async function execute(interaction, uplupAPI) {
           wheelName = 'Reaction Giveaway';
         } catch (error) {
           await interaction.editReply({
-            content: '❌ Could not find that message. Make sure the message ID is correct and the message is in this channel.'
+            content: 'Could not find that message. Make sure the message ID is correct and the message is in this channel.'
           });
           return;
         }
@@ -196,7 +229,7 @@ export async function execute(interaction, uplupAPI) {
           const memberVoiceState = interaction.member.voice;
           if (!memberVoiceState.channel) {
             await interaction.editReply({
-              content: '❌ You must be in a voice channel or specify a channel!'
+              content: 'You must be in a voice channel or specify a channel!'
             });
             return;
           }
@@ -214,41 +247,34 @@ export async function execute(interaction, uplupAPI) {
     // Validate entries
     if (entries.length < 2) {
       await interaction.editReply({
-        content: '❌ Need at least 2 entries to spin the wheel!'
+        content: 'Need at least 2 entries to spin the wheel!'
       });
       return;
     }
 
-    // Check plan limits if API is configured
-    let planLimits = PLAN_LIMITS.noApi; // Default when no API configured
-    let planName = 'Standalone';
+    // Get plan limits from API if configured
+    let maxEntries = STANDALONE_LIMITS.maxEntries;
+    let planName = STANDALONE_LIMITS.planName;
 
     if (uplupAPI) {
       try {
         const accountInfo = await uplupAPI.getAccountInfo();
         planName = accountInfo.plan_name;
-        planLimits = {
-          maxEntries: accountInfo.limits.max_entries,
-          maxPicks: accountInfo.limits.max_picks,
-          maxWinners: accountInfo.limits.max_winners,
-          maxWheels: accountInfo.limits.max_wheels,
-          planName: accountInfo.plan_name,
-          planLevel: accountInfo.plan_level
-        };
+        maxEntries = accountInfo.limits.max_entries;
       } catch (apiError) {
         console.error('Failed to fetch plan limits:', apiError.message);
-        // Continue with guest limits
+        // Continue with standalone limits
       }
     }
 
-    // Check entries limit
-    if (planLimits.maxEntries !== -1 && entries.length > planLimits.maxEntries) {
-      const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, planName, EmbedBuilder);
+    // Check entries limit (-1 means unlimited)
+    if (maxEntries !== -1 && entries.length > maxEntries) {
+      const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, maxEntries, planName);
       await interaction.editReply({ embeds: [limitEmbed] });
       return;
     }
 
-    // Limit entries to prevent performance issues (hard cap at 100)
+    // Hard cap at 100 for performance (GIF rendering)
     if (entries.length > 100) {
       entries = entries.slice(0, 100);
       wheelName += ' (Limited to 100)';
@@ -273,14 +299,14 @@ export async function execute(interaction, uplupAPI) {
     // Create embed
     const embed = new EmbedBuilder()
       .setColor(0x6C60D7)
-      .setTitle('🎡 ' + wheelName)
+      .setTitle(wheelName)
       .setImage('attachment://wheel-spin.gif')
       .addFields(
-        { name: '🎉 Winner', value: `**${winner}**`, inline: true },
-        { name: '👥 Entries', value: `${entries.length}`, inline: true }
+        { name: 'Winner', value: `**${winner}**`, inline: true },
+        { name: 'Entries', value: `${entries.length}`, inline: true }
       )
       .setFooter({
-        text: 'Powered by Uplup • uplup.com/random-name-picker',
+        text: 'Powered by Uplup',
         iconURL: 'https://uplup.com/favicon.ico'
       })
       .setTimestamp();
@@ -291,7 +317,7 @@ export async function execute(interaction, uplupAPI) {
         const createResponse = await uplupAPI.createWheel(wheelName, entries);
         const wheelId = createResponse.data.wheel_id;
         await uplupAPI.spinWheel(wheelId);
-        // Clean up
+        // Clean up temporary wheel
         await uplupAPI.deleteWheel(wheelId);
       } catch (apiError) {
         // Silently fail API logging - don't break the user experience
@@ -307,7 +333,7 @@ export async function execute(interaction, uplupAPI) {
   } catch (error) {
     console.error('Spin command error:', error);
     await interaction.editReply({
-      content: `❌ An error occurred: ${error.message}`
+      content: `An error occurred: ${error.message}`
     });
   }
 }

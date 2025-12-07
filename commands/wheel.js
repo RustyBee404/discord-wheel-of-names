@@ -1,6 +1,33 @@
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder, ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { generateWheelGIF, generateWheelImage } from '../wheel-generator.js';
-import { createLimitExceededEmbed } from '../plan-limits.js';
+
+/**
+ * Create an embed for limit exceeded error
+ */
+function createLimitExceededEmbed(limitType, current, limit, planName) {
+  const labels = {
+    maxEntries: 'entries',
+    maxWheels: 'saved wheels'
+  };
+  const label = labels[limitType] || 'items';
+
+  return new EmbedBuilder()
+    .setColor(0xFF6B6B)
+    .setTitle(`Limit Reached`)
+    .setDescription(
+      `Your **${planName}** plan allows up to **${limit}** ${label}.\n` +
+      `You have **${current}**.\n\n` +
+      `Upgrade your plan for higher limits!`
+    )
+    .addFields({
+      name: 'Upgrade Now',
+      value: '[View Pricing](https://uplup.com/pricing)'
+    })
+    .setFooter({
+      text: 'Uplup',
+      iconURL: 'https://uplup.com/favicon.ico'
+    });
+}
 
 export const data = new SlashCommandBuilder()
   .setName('wheel')
@@ -64,7 +91,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction, uplupAPI) {
   if (!uplupAPI) {
     await interaction.reply({
-      content: '❌ **Uplup API not configured**\n\n' +
+      content: '**Uplup API not configured**\n\n' +
         'To use saved wheels, the bot owner needs to:\n' +
         '1. Get API credentials at **uplup.com/brand/api-integrations**\n' +
         '2. Add them to the `.env` file:\n' +
@@ -73,7 +100,7 @@ export async function execute(interaction, uplupAPI) {
         'UPLUP_API_SECRET=your_secret\n' +
         '```\n' +
         '3. Restart the bot\n\n' +
-        '💡 **Tip:** Use `/spin custom` instead - it works without API setup!',
+        '**Tip:** Use `/spin custom` instead - it works without API setup!',
       ephemeral: true
     });
     return;
@@ -91,14 +118,14 @@ export async function execute(interaction, uplupAPI) {
 
         if (wheels.length === 0) {
           await interaction.editReply({
-            content: '📭 You don\'t have any saved wheels yet!\n\nCreate one with `/wheel create` or at **uplup.com/random-name-picker**'
+            content: 'You don\'t have any saved wheels yet!\n\nCreate one with `/wheel create` or at **uplup.com/random-name-picker**'
           });
           return;
         }
 
         const embed = new EmbedBuilder()
           .setColor(0x6C60D7)
-          .setTitle('🎡 Your Saved Wheels')
+          .setTitle('Your Saved Wheels')
           .setDescription(`Found **${wheels.length}** wheel${wheels.length !== 1 ? 's' : ''}`)
           .setFooter({
             text: 'Use /wheel spin <wheel_id> to spin a wheel',
@@ -108,14 +135,14 @@ export async function execute(interaction, uplupAPI) {
         // Add wheel list
         const wheelList = wheels.slice(0, 10).map((wheel, index) => {
           const entriesCount = wheel.entries_count || wheel.entries?.length || '?';
-          return `**${index + 1}.** ${wheel.wheel_name}\n   ID: \`${wheel.wheel_id}\` • ${entriesCount} entries`;
+          return `**${index + 1}.** ${wheel.wheel_name}\n   ID: \`${wheel.wheel_id}\` | ${entriesCount} entries`;
         }).join('\n\n');
 
         embed.addFields({ name: 'Wheels', value: wheelList || 'No wheels found' });
 
         if (wheels.length > 10) {
           embed.addFields({
-            name: '📋 More wheels',
+            name: 'More wheels',
             value: `Showing 10 of ${wheels.length}. Visit uplup.com to see all.`
           });
         }
@@ -133,7 +160,7 @@ export async function execute(interaction, uplupAPI) {
 
         if (!wheel) {
           await interaction.editReply({
-            content: '❌ Wheel not found. Check the wheel ID and try again.'
+            content: 'Wheel not found. Check the wheel ID and try again.'
           });
           return;
         }
@@ -142,7 +169,7 @@ export async function execute(interaction, uplupAPI) {
 
         if (entries.length < 2) {
           await interaction.editReply({
-            content: '❌ This wheel needs at least 2 entries to spin!'
+            content: 'This wheel needs at least 2 entries to spin!'
           });
           return;
         }
@@ -164,15 +191,15 @@ export async function execute(interaction, uplupAPI) {
 
         const embed = new EmbedBuilder()
           .setColor(0x6C60D7)
-          .setTitle(`🎡 ${wheel.wheel_name}`)
+          .setTitle(`${wheel.wheel_name}`)
           .setImage('attachment://wheel-spin.gif')
           .addFields(
-            { name: '🎉 Winner', value: `**${winner}**`, inline: true },
-            { name: '👥 Entries', value: `${entries.length}`, inline: true },
-            { name: '🔢 Spin #', value: `${(wheel.total_spins || 0) + 1}`, inline: true }
+            { name: 'Winner', value: `**${winner}**`, inline: true },
+            { name: 'Entries', value: `${entries.length}`, inline: true },
+            { name: 'Spin #', value: `${(wheel.total_spins || 0) + 1}`, inline: true }
           )
           .setFooter({
-            text: 'Powered by Uplup • uplup.com/random-name-picker',
+            text: 'Powered by Uplup',
             iconURL: 'https://uplup.com/favicon.ico'
           })
           .setTimestamp();
@@ -191,33 +218,33 @@ export async function execute(interaction, uplupAPI) {
 
         if (entries.length < 2) {
           await interaction.editReply({
-            content: '❌ You need at least 2 entries to create a wheel!'
+            content: 'You need at least 2 entries to create a wheel!'
           });
           return;
         }
 
-        // Check plan limits before creating
+        // Check plan limits before creating (fetched from API)
         try {
           const accountInfo = await uplupAPI.getAccountInfo();
           const limits = accountInfo.limits;
           const planName = accountInfo.plan_name;
 
-          // Check entries limit
+          // Check entries limit (-1 = unlimited)
           if (limits.max_entries !== -1 && entries.length > limits.max_entries) {
-            const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, planName, EmbedBuilder);
+            const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, limits.max_entries, planName);
             await interaction.editReply({ embeds: [limitEmbed] });
             return;
           }
 
-          // Check wheels limit
-          if (limits.max_wheels !== -1 && accountInfo.usage.wheels >= limits.max_wheels) {
-            const limitEmbed = createLimitExceededEmbed('maxWheels', accountInfo.usage.wheels + 1, planName, EmbedBuilder);
+          // Check wheels limit (-1 = unlimited)
+          if (limits.max_wheels !== -1 && accountInfo.usage?.wheels >= limits.max_wheels) {
+            const limitEmbed = createLimitExceededEmbed('maxWheels', accountInfo.usage.wheels + 1, limits.max_wheels, planName);
             await interaction.editReply({ embeds: [limitEmbed] });
             return;
           }
         } catch (limitError) {
           console.error('Failed to check limits:', limitError.message);
-          // Continue anyway - the API will enforce limits
+          // Continue anyway - the API will enforce limits server-side
         }
 
         const response = await uplupAPI.createWheel(name, entries);
@@ -225,11 +252,11 @@ export async function execute(interaction, uplupAPI) {
 
         const embed = new EmbedBuilder()
           .setColor(0x4CAF50)
-          .setTitle('✅ Wheel Created!')
+          .setTitle('Wheel Created!')
           .addFields(
-            { name: '📛 Name', value: wheel.wheel_name, inline: true },
-            { name: '🆔 Wheel ID', value: `\`${wheel.wheel_id}\``, inline: true },
-            { name: '👥 Entries', value: `${entries.length}`, inline: true }
+            { name: 'Name', value: wheel.wheel_name, inline: true },
+            { name: 'Wheel ID', value: `\`${wheel.wheel_id}\``, inline: true },
+            { name: 'Entries', value: `${entries.length}`, inline: true }
           )
           .setDescription(`Use \`/wheel spin ${wheel.wheel_id}\` to spin this wheel!`)
           .setFooter({
@@ -247,7 +274,7 @@ export async function execute(interaction, uplupAPI) {
         await uplupAPI.deleteWheel(wheelId);
 
         await interaction.editReply({
-          content: `✅ Wheel \`${wheelId}\` has been deleted.`
+          content: `Wheel \`${wheelId}\` has been deleted.`
         });
         break;
       }
@@ -259,7 +286,7 @@ export async function execute(interaction, uplupAPI) {
 
         if (!wheel) {
           await interaction.editReply({
-            content: '❌ Wheel not found. Check the wheel ID and try again.'
+            content: 'Wheel not found. Check the wheel ID and try again.'
           });
           return;
         }
@@ -280,13 +307,13 @@ export async function execute(interaction, uplupAPI) {
 
         const embed = new EmbedBuilder()
           .setColor(0x6C60D7)
-          .setTitle(`🎡 ${wheel.wheel_name}`)
+          .setTitle(`${wheel.wheel_name}`)
           .setThumbnail('attachment://wheel-preview.png')
           .addFields(
-            { name: '🆔 Wheel ID', value: `\`${wheel.wheel_id}\``, inline: true },
-            { name: '👥 Entries', value: `${entries.length}`, inline: true },
-            { name: '🔄 Total Spins', value: `${wheel.total_spins || 0}`, inline: true },
-            { name: '📋 Entry List', value: entriesList || 'No entries' }
+            { name: 'Wheel ID', value: `\`${wheel.wheel_id}\``, inline: true },
+            { name: 'Entries', value: `${entries.length}`, inline: true },
+            { name: 'Total Spins', value: `${wheel.total_spins || 0}`, inline: true },
+            { name: 'Entry List', value: entriesList || 'No entries' }
           )
           .setFooter({
             text: 'Use /wheel spin to spin this wheel',
@@ -295,7 +322,7 @@ export async function execute(interaction, uplupAPI) {
 
         if (wheel.created_at) {
           embed.addFields({
-            name: '📅 Created',
+            name: 'Created',
             value: new Date(wheel.created_at).toLocaleDateString(),
             inline: true
           });
@@ -311,7 +338,7 @@ export async function execute(interaction, uplupAPI) {
   } catch (error) {
     console.error('Wheel command error:', error);
     await interaction.editReply({
-      content: `❌ An error occurred: ${error.message}`
+      content: `An error occurred: ${error.message}`
     });
   }
 }

@@ -1,23 +1,41 @@
-# Uplup Wheel Discord Bot
+# Wheel of Names Discord Bot
 
-Spin wheels with server members, roles, reactions, and more! Features animated wheel GIFs that show the spin in real-time.
+A free, open-source, **self-hosted wheel of names Discord bot** for spinning random name pickers directly in your server. Perfect for giveaways, raffles, random selections, and picking winners from your community.
+
+Looking for a **Discord wheel of names** solution? This self-hosted bot brings the popular wheel picker experience to Discord with animated GIF spins, custom entries, and seamless integration with [Uplup's Random Name Picker](https://uplup.com/random-name-picker). Host it yourself on Railway, DigitalOcean, or any VPS for full control over your data.
+
+## Why Use This Wheel of Names Bot for Discord?
+
+- **Self-Hosted & Open Source** - Full control over your bot and data, host anywhere
+- **Animated Wheel Spins** - Watch the name wheel spin in real-time with GIF animations
+- **Random Name Picker** - Fairly pick random winners from server members, roles, or custom lists
+- **Giveaway Ready** - Perfect for Discord giveaways with reaction-based entry
+- **Voice Channel Support** - Pick random members from voice channels
+- **Saved Wheels** - Create and reuse your wheel picker configurations
+- **Multiple Color Themes** - 5 beautiful color palettes to match your server
 
 ## Features
 
-- **Animated Wheel GIFs** - Watch the wheel spin in Discord
-- **Spin with Members** - Pick from all server members or filter by role
-- **Spin by Reactions** - Pick from users who reacted to a message
-- **Spin Voice Channel** - Pick from members in a voice channel
-- **Custom Entries** - Spin with any entries you want
-- **Saved Wheels** - Connect to Uplup to save and reuse wheels
-- **Color Themes** - 5 beautiful color palettes
+### Spin Types
+- **Server Members** - Random name picker from all members or filtered by role
+- **Custom Entries** - Wheel of names with any entries you provide
+- **Reaction Picker** - Pick winners from users who reacted to a message
+- **Voice Channel** - Random selection from voice channel participants
+
+### Wheel Customization
+- 5 color themes (Uplup, Vibrant, Pastel, Sunset, Ocean)
+- Animated wheel GIF generation
+- Winner history tracking
+- Saved wheel configurations
+
+---
 
 ## Quick Start
 
 ### 1. Create a Discord Application
 
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click **"New Application"** and name it (e.g., "Wheel Bot")
+2. Click **"New Application"** and name it (e.g., "Wheel of Names Bot")
 3. Go to **"Bot"** section and click **"Add Bot"**
 4. Click **"Reset Token"** and copy the **Bot Token** (keep this secret!)
 5. Enable these **Privileged Gateway Intents**:
@@ -42,8 +60,8 @@ API access is **free** and enables saved wheels, plan-based limits, and usage tr
 
 ```bash
 # Clone the repository
-git clone https://github.com/uplup/uplup-discord-bot.git
-cd uplup-discord-bot
+git clone https://github.com/Uplup/discord-wheel-of-names.git
+cd discord-wheel-of-names
 
 # Copy the example environment file
 cp .env.example .env
@@ -89,21 +107,21 @@ Click that link and select your server!
 
 ## Commands
 
-### `/spin` - Quick Spins
+### `/spin` - Quick Random Name Picker
 
 | Subcommand | Description | Options |
 |------------|-------------|---------|
-| `/spin members` | Spin with server members | `role` (optional), `exclude_bots`, `color` |
-| `/spin custom` | Spin with custom entries | `entries` (required), `color` |
-| `/spin reactions` | Spin with message reactions | `message_id` (required), `emoji`, `color` |
-| `/spin voice` | Spin with voice channel members | `channel`, `color` |
+| `/spin members` | Random name picker from server members | `role` (optional), `exclude_bots`, `color` |
+| `/spin custom` | Wheel of names with custom entries | `entries` (required), `color` |
+| `/spin reactions` | Pick winner from message reactions | `message_id` (required), `emoji`, `color` |
+| `/spin voice` | Random picker from voice channel | `channel`, `color` |
 
-### `/wheel` - Saved Wheels (requires Uplup API)
+### `/wheel` - Saved Wheel Picker (requires Uplup API)
 
 | Subcommand | Description | Options |
 |------------|-------------|---------|
-| `/wheel list` | List your saved wheels | - |
-| `/wheel spin` | Spin a saved wheel | `wheel_id` (required) |
+| `/wheel list` | List your saved name wheels | - |
+| `/wheel spin` | Spin a saved wheel of names | `wheel_id` (required) |
 | `/wheel create` | Create and save a new wheel | `name`, `entries` |
 | `/wheel delete` | Delete a saved wheel | `wheel_id` |
 | `/wheel info` | View wheel details | `wheel_id` |
@@ -118,12 +136,40 @@ Click that link and select your server!
 
 ---
 
+## Use Cases
+
+### Discord Giveaways
+Run fair giveaways by picking random winners from reactions:
+```
+/spin reactions message_id:123456789
+```
+
+### Classroom Random Name Picker
+Teachers can pick random students for participation:
+```
+/spin members role:@Students
+```
+
+### Gaming Team Selection
+Randomly assign players to teams from voice chat:
+```
+/spin voice channel:#gaming-lobby
+```
+
+### Raffle & Contest Winners
+Pick winners from custom entry lists:
+```
+/spin custom entries:Alice, Bob, Charlie, Diana
+```
+
+---
+
 ## Plan Limits
 
 | Feature | Free | Boost ($29/mo) |
 |---------|------|----------------|
 | `/spin` commands | Unlimited | Unlimited |
-| Entries per wheel | 100 | Unlimited |
+| Names per wheel | 100 | 1,000,000 |
 | Saved wheels | 3 | Unlimited |
 | API requests/hour | 100 | Unlimited |
 
@@ -154,7 +200,7 @@ npm install --production
 
 # Run with PM2 for auto-restart
 npm install -g pm2
-pm2 start index.js --name uplup-bot
+pm2 start index.js --name wheel-of-names-bot
 pm2 save
 pm2 startup
 ```
@@ -191,12 +237,26 @@ Enable **Server Members Intent** in Discord Developer Portal > Bot settings.
 
 ---
 
+## Related Tools
+
+- **[Random Name Picker](https://uplup.com/random-name-picker)** - Web-based wheel of names tool
+- **[Wheel Picker API](https://uplup.com/api)** - REST API for wheel integrations
+- **[Giveaway Tool](https://uplup.com/giveaway)** - Full-featured contest platform
+
+---
+
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/uplup/uplup-discord-bot/issues)
+- **Issues**: [GitHub Issues](https://github.com/Uplup/discord-wheel-of-names/issues)
 - **Website**: [uplup.com](https://uplup.com)
-- **Wheel Tool**: [uplup.com/random-name-picker](https://uplup.com/random-name-picker)
+- **Name Picker**: [uplup.com/random-name-picker](https://uplup.com/random-name-picker)
 - **API Docs**: [uplup.com/api](https://uplup.com/api)
+
+---
+
+## Keywords
+
+wheel of names discord bot, discord wheel of names, wheel of names bot discord, random name picker discord, name wheel discord, wheel picker bot, discord random picker, discord giveaway wheel, spin the wheel discord bot, name picker bot
 
 ---
 
