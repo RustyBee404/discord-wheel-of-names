@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder, ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { generateWheelGIF, generateWheelImage } from '../wheel-generator.js';
+import { createLimitExceededEmbed } from '../plan-limits.js';
 
 export const data = new SlashCommandBuilder()
   .setName('wheel')
@@ -193,6 +194,30 @@ export async function execute(interaction, uplupAPI) {
             content: '❌ You need at least 2 entries to create a wheel!'
           });
           return;
+        }
+
+        // Check plan limits before creating
+        try {
+          const accountInfo = await uplupAPI.getAccountInfo();
+          const limits = accountInfo.limits;
+          const planName = accountInfo.plan_name;
+
+          // Check entries limit
+          if (limits.max_entries !== -1 && entries.length > limits.max_entries) {
+            const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, planName, EmbedBuilder);
+            await interaction.editReply({ embeds: [limitEmbed] });
+            return;
+          }
+
+          // Check wheels limit
+          if (limits.max_wheels !== -1 && accountInfo.usage.wheels >= limits.max_wheels) {
+            const limitEmbed = createLimitExceededEmbed('maxWheels', accountInfo.usage.wheels + 1, planName, EmbedBuilder);
+            await interaction.editReply({ embeds: [limitEmbed] });
+            return;
+          }
+        } catch (limitError) {
+          console.error('Failed to check limits:', limitError.message);
+          // Continue anyway - the API will enforce limits
         }
 
         const response = await uplupAPI.createWheel(name, entries);

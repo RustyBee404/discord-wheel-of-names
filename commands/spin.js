@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { generateWheelGIF, generateWheelImage, COLOR_PALETTES } from '../wheel-generator.js';
+import { PLAN_LIMITS, createLimitExceededEmbed } from '../plan-limits.js';
 
 export const data = new SlashCommandBuilder()
   .setName('spin')
@@ -218,10 +219,39 @@ export async function execute(interaction, uplupAPI) {
       return;
     }
 
-    // Limit entries to prevent performance issues
-    if (entries.length > 50) {
-      entries = entries.slice(0, 50);
-      wheelName += ' (Limited to 50)';
+    // Check plan limits if API is configured
+    let planLimits = PLAN_LIMITS.guest; // Default to guest limits
+    let planName = 'Guest';
+
+    if (uplupAPI) {
+      try {
+        const accountInfo = await uplupAPI.getAccountInfo();
+        planName = accountInfo.plan_name;
+        planLimits = {
+          maxEntries: accountInfo.limits.max_entries,
+          maxPicks: accountInfo.limits.max_picks,
+          maxWinners: accountInfo.limits.max_winners,
+          maxWheels: accountInfo.limits.max_wheels,
+          planName: accountInfo.plan_name,
+          planLevel: accountInfo.plan_level
+        };
+      } catch (apiError) {
+        console.error('Failed to fetch plan limits:', apiError.message);
+        // Continue with guest limits
+      }
+    }
+
+    // Check entries limit
+    if (planLimits.maxEntries !== -1 && entries.length > planLimits.maxEntries) {
+      const limitEmbed = createLimitExceededEmbed('maxEntries', entries.length, planName, EmbedBuilder);
+      await interaction.editReply({ embeds: [limitEmbed] });
+      return;
+    }
+
+    // Limit entries to prevent performance issues (hard cap at 100)
+    if (entries.length > 100) {
+      entries = entries.slice(0, 100);
+      wheelName += ' (Limited to 100)';
     }
 
     // Pick a random winner
