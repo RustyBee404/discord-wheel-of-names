@@ -1,16 +1,91 @@
-# Uplup Wheel Discord Bot 🎡
+# Uplup Wheel Discord Bot
 
 Spin wheels with server members, roles, reactions, and more! Features animated wheel GIFs that show the spin in real-time.
 
 ## Features
 
-- **🎡 Animated Wheel GIFs** - Watch the wheel spin in Discord
-- **👥 Spin with Members** - Pick from all server members or filter by role
-- **🎭 Spin by Reactions** - Pick from users who reacted to a message
-- **🎤 Spin Voice Channel** - Pick from members in a voice channel
-- **✏️ Custom Entries** - Spin with any entries you want
-- **💾 Saved Wheels** - Connect to Uplup to save and reuse wheels
-- **🎨 Color Themes** - 5 beautiful color palettes
+- **Animated Wheel GIFs** - Watch the wheel spin in Discord
+- **Spin with Members** - Pick from all server members or filter by role
+- **Spin by Reactions** - Pick from users who reacted to a message
+- **Spin Voice Channel** - Pick from members in a voice channel
+- **Custom Entries** - Spin with any entries you want
+- **Saved Wheels** - Connect to Uplup to save and reuse wheels
+- **Color Themes** - 5 beautiful color palettes
+
+## Quick Start
+
+### 1. Create a Discord Application
+
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click **"New Application"** and name it (e.g., "Wheel Bot")
+3. Go to **"Bot"** section and click **"Add Bot"**
+4. Click **"Reset Token"** and copy the **Bot Token** (keep this secret!)
+5. Enable these **Privileged Gateway Intents**:
+   - Server Members Intent
+   - Message Content Intent
+6. Copy your **Application ID** from the "General Information" page
+
+### 2. Get Your Uplup API Keys (Free)
+
+API access is **free** and enables saved wheels, plan-based limits, and usage tracking.
+
+1. **Create an account** at [uplup.com/random-name-picker](https://uplup.com/random-name-picker) (click "Sign Up" - it's free)
+2. After logging in, go to **[Dashboard > API Integrations](https://uplup.com/brand/api-integrations#api-keys)**
+3. Click **"Create API Key"**
+4. Give it a name like "Discord Bot"
+5. **Important**: Copy both the **API Key** and **API Secret** immediately - the secret is only shown once!
+
+**Free plan limits**: 100 API requests/hour, 100 entries/wheel, 3 saved wheels
+**Boost plan ($29/mo)**: Unlimited requests, unlimited entries, unlimited wheels
+
+### 3. Configure the Bot
+
+```bash
+# Clone the repository
+git clone https://github.com/uplup/uplup-discord-bot.git
+cd uplup-discord-bot
+
+# Copy the example environment file
+cp .env.example .env
+```
+
+Edit `.env` with your credentials:
+
+```env
+# Discord Configuration (Required)
+DISCORD_TOKEN=paste_your_bot_token_here
+DISCORD_CLIENT_ID=paste_your_application_id_here
+
+# Uplup API Configuration (Required for saved wheels & limits)
+UPLUP_API_KEY=uplup_live_xxxxxxxxxxxxxxxx
+UPLUP_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+UPLUP_API_BASE_URL=https://api.uplup.com/api/wheel
+```
+
+### 4. Install & Run
+
+```bash
+# Install dependencies
+npm install
+
+# Deploy slash commands to Discord
+npm run deploy
+
+# Start the bot
+npm start
+```
+
+### 5. Add Bot to Your Server
+
+The bot will print an invite URL when it starts:
+```
+Add to your server:
+https://discord.com/api/oauth2/authorize?client_id=YOUR_ID&permissions=274878024768&scope=bot%20applications.commands
+```
+
+Click that link and select your server!
+
+---
 
 ## Commands
 
@@ -33,7 +108,7 @@ Spin wheels with server members, roles, reactions, and more! Features animated w
 | `/wheel delete` | Delete a saved wheel | `wheel_id` |
 | `/wheel info` | View wheel details | `wheel_id` |
 
-## Color Themes
+### Color Themes
 
 - **Uplup** (default) - Purple and pink
 - **Vibrant** - Bold, bright colors
@@ -41,74 +116,30 @@ Spin wheels with server members, roles, reactions, and more! Features animated w
 - **Sunset** - Warm oranges and pinks
 - **Ocean** - Cool blues and teals
 
-## Setup
+---
 
-### 1. Create a Discord Application
+## Plan Limits
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application" and name it "Uplup Wheel"
-3. Go to "Bot" section and click "Add Bot"
-4. Copy the **Bot Token** (keep this secret!)
-5. Enable these **Privileged Gateway Intents**:
-   - Server Members Intent
-   - Message Content Intent
-6. Go to "OAuth2" > "URL Generator"
-   - Select scopes: `bot`, `applications.commands`
-   - Select permissions: `Send Messages`, `Embed Links`, `Attach Files`, `Read Message History`, `Add Reactions`
-7. Copy the generated URL and use it to add the bot to your server
+| Feature | Free | Boost ($29/mo) |
+|---------|------|----------------|
+| `/spin` commands | Unlimited | Unlimited |
+| Entries per wheel | 100 | Unlimited |
+| Saved wheels | 3 | Unlimited |
+| API requests/hour | 100 | Unlimited |
 
-### 2. Configure Environment
+Upgrade at [uplup.com/pricing](https://uplup.com/pricing)
 
-Copy `.env.example` to `.env` and fill in your credentials:
-
-\`\`\`bash
-cp .env.example .env
-\`\`\`
-
-\`\`\`env
-# Required
-DISCORD_TOKEN=your_bot_token_here
-DISCORD_CLIENT_ID=your_application_id_here
-
-# Optional - for saved wheels feature
-UPLUP_API_KEY=your_uplup_api_key
-UPLUP_API_SECRET=your_uplup_api_secret
-\`\`\`
-
-### 3. Install Dependencies
-
-\`\`\`bash
-npm install
-\`\`\`
-
-### 4. Deploy Commands
-
-\`\`\`bash
-npm run deploy
-\`\`\`
-
-### 5. Start the Bot
-
-\`\`\`bash
-npm start
-\`\`\`
-
-## Development
-
-\`\`\`bash
-# Run with hot reload
-npm run dev
-
-# Test GIF generation
-npm run test-gif
-\`\`\`
+---
 
 ## Hosting Options
 
 ### Option 1: Railway (Recommended)
-1. Connect your GitHub repo to [Railway](https://railway.app)
-2. Add environment variables in Railway dashboard
-3. Deploy!
+1. Fork this repo to your GitHub
+2. Connect to [Railway](https://railway.app)
+3. Add environment variables in Railway dashboard
+4. Deploy!
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
 
 ### Option 2: DigitalOcean App Platform
 1. Create a new app from GitHub
@@ -116,33 +147,58 @@ npm run test-gif
 3. Deploy as a worker (not web service)
 
 ### Option 3: VPS (AWS, DigitalOcean Droplet, etc.)
-\`\`\`bash
+```bash
 # Install Node.js 18+
 # Clone repo and install dependencies
 npm install --production
 
-# Run with PM2
+# Run with PM2 for auto-restart
 npm install -g pm2
 pm2 start index.js --name uplup-bot
 pm2 save
 pm2 startup
-\`\`\`
+```
 
-## Getting Uplup API Access
+---
 
-To enable saved wheels:
+## Development
 
-1. Sign up at [uplup.com](https://uplup.com)
-2. Upgrade to Boost plan ($29/mo) or higher
-3. Go to Dashboard > API Integrations
-4. Create an API key
-5. Add key and secret to your `.env` file
+```bash
+# Run with auto-reload (development)
+npm run dev
+
+# Test GIF generation locally
+npm run test-gif
+```
+
+---
+
+## Troubleshooting
+
+### "Uplup API not configured"
+Make sure you've added both `UPLUP_API_KEY` and `UPLUP_API_SECRET` to your `.env` file.
+
+### "This command requires Uplup API integration"
+The `/wheel` commands need API keys configured. The `/spin` commands work without API keys.
+
+### Bot doesn't respond to commands
+1. Make sure you ran `npm run deploy` after any command changes
+2. Check that the bot has proper permissions in the channel
+3. Verify the bot is online (green status)
+
+### "Missing Server Members Intent"
+Enable **Server Members Intent** in Discord Developer Portal > Bot settings.
+
+---
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/uplup/uplup-discord-bot/issues)
 - **Website**: [uplup.com](https://uplup.com)
 - **Wheel Tool**: [uplup.com/random-name-picker](https://uplup.com/random-name-picker)
+- **API Docs**: [uplup.com/api](https://uplup.com/api)
+
+---
 
 ## License
 

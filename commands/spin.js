@@ -220,8 +220,8 @@ export async function execute(interaction, uplupAPI) {
     }
 
     // Check plan limits if API is configured
-    let planLimits = PLAN_LIMITS.guest; // Default to guest limits
-    let planName = 'Guest';
+    let planLimits = PLAN_LIMITS.noApi; // Default when no API configured
+    let planName = 'Standalone';
 
     if (uplupAPI) {
       try {

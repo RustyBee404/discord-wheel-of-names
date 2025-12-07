@@ -5,18 +5,20 @@
 
 // Plan limits by level
 // Now matches the updated API limits where Free tier has API access
+// Note: All API users have accounts (Free plan minimum). Guest = no API configured.
 export const PLAN_LIMITS = {
-  // Guest (no API key configured - bot running without Uplup API)
-  guest: {
-    maxEntries: 50,
-    maxPicks: 5,
-    maxWinners: 5,
+  // No API configured - bot running standalone without Uplup API
+  // In this mode, the bot works but without plan-based limits
+  noApi: {
+    maxEntries: 100, // Reasonable default for standalone mode
+    maxPicks: -1,
+    maxWinners: -1,
     maxWheels: 0,
     requestsPerHour: 0,
-    planName: 'Guest',
+    planName: 'Standalone',
     planLevel: 0
   },
-  // Free (plan_level = 1) - Now has API access with limits
+  // Free (plan_level = 1) - API access with limits
   free: {
     maxEntries: 100,
     maxPicks: 10,
@@ -60,10 +62,11 @@ export const PLAN_LIMITS = {
 
 /**
  * Get limits for a plan level
- * Plan levels: 0=Guest, 1=Free, 2-4=Boost, 5-7=Elevate, 8+=Ultimate
+ * Plan levels: 1=Free, 2-4=Boost, 5-7=Elevate, 8+=Ultimate
+ * All API users have at least Free plan (level 1)
  */
 export function getLimitsForPlanLevel(planLevel) {
-  if (planLevel <= 0) return PLAN_LIMITS.guest;
+  if (planLevel <= 0) return PLAN_LIMITS.noApi; // No API configured
   if (planLevel === 1) return PLAN_LIMITS.free;
   if (planLevel >= 2 && planLevel <= 4) return PLAN_LIMITS.boost;
   if (planLevel >= 5 && planLevel <= 7) return PLAN_LIMITS.elevate;
