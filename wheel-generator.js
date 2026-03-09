@@ -97,7 +97,8 @@ export async function generateWheelGIF(entries, options = {}) {
       ctx.rotate(startAngle + sliceAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#ffffff';
-      ctx.font = `bold ${Math.min(16, Math.floor(400 / entries.length))}px Arial`;
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${Math.min(16, Math.floor(400 / entries.length))}px sans-serif`;
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 3;
 
@@ -108,7 +109,7 @@ export async function generateWheelGIF(entries, options = {}) {
         displayName = displayName.substring(0, maxLength - 2) + '..';
       }
 
-      ctx.fillText(displayName, radius - 15, 5);
+      ctx.fillText(displayName, radius - 15, 0);
       ctx.restore();
     }
 
@@ -207,7 +208,8 @@ export async function generateWheelImage(entries, winner, options = {}) {
     ctx.rotate(startAngle + sliceAngle / 2);
     ctx.textAlign = 'right';
     ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${Math.min(14, Math.floor(300 / entries.length))}px Arial`;
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.min(14, Math.floor(300 / entries.length))}px sans-serif`;
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
     ctx.shadowBlur = 3;
 
@@ -217,7 +219,7 @@ export async function generateWheelImage(entries, winner, options = {}) {
       displayName = displayName.substring(0, maxLength - 2) + '..';
     }
 
-    ctx.fillText(displayName, radius - 10, 5);
+    ctx.fillText(displayName, radius - 10, 0);
     ctx.restore();
   }
 
