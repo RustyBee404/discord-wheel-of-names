@@ -3,8 +3,17 @@
  * Generates animated spinning wheel GIFs for Discord
  */
 
-import { createCanvas } from '@napi-rs/canvas';
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import GIFEncoder from 'gif-encoder-2';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+GlobalFonts.registerFromPath(
+  path.join(__dirname, 'fonts', 'DejaVuSans.ttf'),
+  'DejaVu Sans'
+);
 
 // Vibrant color palettes matching Uplup's theme
 const COLOR_PALETTES = {
@@ -248,12 +257,12 @@ export async function generateWheelImage(entries, winner, options = {}) {
 
   // Winner text at bottom
   ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 24px Arial';
+  ctx.font = 'bold 24px "DejaVu Sans"';
   ctx.textAlign = 'center';
   ctx.fillText('🎉 WINNER 🎉', centerX, height - 45);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 28px Arial';
+  ctx.font = 'bold 28px "DejaVu Sans"';
   ctx.fillText(winner, centerX, height - 15);
 
   return canvas.toBuffer('image/png');
