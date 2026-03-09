@@ -2,11 +2,9 @@
  * Uplup Wheel API Client
  * Handles all API calls to Uplup Wheel service
  */
-
 export class UplupAPI {
-  constructor(apiKey, apiSecret, baseUrl = 'https://api.uplup.com/api/wheel') {
+  constructor(apiKey, baseUrl = 'https://api.uplup.com/api/wheel') {
     this.apiKey = apiKey;
-    this.apiSecret = apiSecret;
     this.baseUrl = baseUrl;
     this.accountInfo = null;
     this.accountInfoFetchedAt = null;
@@ -16,8 +14,7 @@ export class UplupAPI {
    * Get authorization header for API requests
    */
   getAuthHeader() {
-    const credentials = Buffer.from(`${this.apiKey}:${this.apiSecret}`).toString('base64');
-    return `Basic ${credentials}`;
+    return `Bearer ${this.apiKey}`;
   }
 
   /**
@@ -25,7 +22,6 @@ export class UplupAPI {
    */
   async request(endpoint, method = 'GET', body = null) {
     const url = `${this.baseUrl}${endpoint}`;
-
     const options = {
       method,
       headers: {
@@ -49,9 +45,6 @@ export class UplupAPI {
     return data;
   }
 
-  /**
-   * Create a new wheel
-   */
   async createWheel(name, entries, settings = {}) {
     return this.request('/wheels', 'POST', {
       wheel_name: name,
@@ -66,55 +59,33 @@ export class UplupAPI {
     });
   }
 
-  /**
-   * Get wheel details
-   */
   async getWheel(wheelId) {
     return this.request(`/wheels/${wheelId}`);
   }
 
-  /**
-   * Spin a wheel
-   */
   async spinWheel(wheelId) {
     return this.request(`/wheels/${wheelId}/spin`, 'POST');
   }
 
-  /**
-   * List all wheels
-   */
   async listWheels(limit = 10, offset = 0) {
     return this.request(`/wheels?limit=${limit}&offset=${offset}`);
   }
 
-  /**
-   * Update wheel entries
-   */
   async updateWheelEntries(wheelId, entries) {
     return this.request(`/wheels/${wheelId}/entries`, 'PUT', { entries });
   }
 
-  /**
-   * Add entries to a wheel
-   */
   async addEntries(wheelId, entries) {
     return this.request(`/wheels/${wheelId}/entries`, 'POST', { entries });
   }
 
-  /**
-   * Delete a wheel
-   */
   async deleteWheel(wheelId) {
     return this.request(`/wheels/${wheelId}`, 'DELETE');
   }
 
-  /**
-   * Get account info and plan limits
-   * Caches for 5 minutes to reduce API calls
-   */
   async getAccountInfo(forceRefresh = false) {
     const cacheAge = this.accountInfoFetchedAt ? Date.now() - this.accountInfoFetchedAt : Infinity;
-    const cacheValid = cacheAge < 5 * 60 * 1000; // 5 minutes
+    const cacheValid = cacheAge < 5 * 60 * 1000;
 
     if (!forceRefresh && this.accountInfo && cacheValid) {
       return this.accountInfo;
@@ -126,27 +97,21 @@ export class UplupAPI {
     return this.accountInfo;
   }
 
-  /**
-   * Get plan limits (convenience method)
-   */
   async getLimits() {
     const account = await this.getAccountInfo();
     return account.limits;
   }
 
-  /**
-   * Check if a limit would be exceeded
-   * @param {string} limitType - 'max_entries', 'max_picks', 'max_winners', 'max_wheels'
-   * @param {number} value - The value to check
-   * @returns {object} { allowed, limit, current, message }
-   */
   async checkLimit(limitType, value) {
     const account = await this.getAccountInfo();
     const limit = account.limits[limitType];
 
-    // -1 means unlimited
     if (limit === -1) {
-      return { allowed: true, limit: -1, isUnlimited: true };
+      return {
+        allowed: true,
+        limit: -1,
+        isUnlimited: true
+      };
     }
 
     if (value > limit) {
@@ -164,10 +129,14 @@ export class UplupAPI {
         limit,
         current: value,
         planName,
-        message: `Your **${planName}** plan allows up to **${limit}** ${label}. You have ${value}.`
+        message: `Your **${planName}** plan allows up to **${limit}** ${label}.\nYou have ${value}.`
       };
     }
 
-    return { allowed: true, limit, current: value };
+    return {
+      allowed: true,
+      limit,
+      current: value
+    };
   }
 }
